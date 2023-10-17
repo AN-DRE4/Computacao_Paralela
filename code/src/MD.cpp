@@ -244,7 +244,6 @@ int main()
     // Vol = L*L*L;
     // Length of the box in natural units:
     L = pow(Vol,(1./3)); //*CHANGED THIS*
-    //L = fast_inv_nth_root<3>(Vol);
     
     //  Files that we can write different quantities to
     tfp = fopen(tfn,"w");     //  The MD trajectory, coordinates of every particle at each timestep
@@ -376,7 +375,6 @@ void initialize() {
     // Number of atoms in each direction
     n = int(ceil(pow(N, 1.0/3)));
     //n = static_cast<int>(cbrt(N)+ 0.5); // *CHANGED THIS* 
-    //n = int(ceil(fast_inv_nth_root<3>(N))); // *TEST THIS ONE*
 
     //  spacing between atoms along a given direction
     pos = L / n;
@@ -689,26 +687,3 @@ float power(float x) {
    else if (N % 3 == 0) return power<N / 3>(x * x * x);
    return power<N - 1>(x) * x;
 };
-
-//Fast inverse power root implementation test
-
-template<>
-float power<0>(float x){ return 1; }
-
-// fast_inv_nth_root<2>(x) - inverse square root 1/sqrt(x)
-// fast_inv_nth_root<3>(x) - inverse cube root 1/cbrt(x)
-
-template <unsigned n>
-float fast_inv_nth_root(float x)
-{
-   union { float f; u_int32_t i; } t = { x };
-
-   // Approximate solution
-   t.i = 0x3F7A3BEA / n * (n + 1) - t.i / n;
-   float y = t.f;
-
-   // Newton's steps. Copy for more accuracy.
-   y = y * (n + 1 - x * power<n>(y)) / n;
-   y = y * (n + 1 - x * power<n>(y)) / n;
-   return y;
-}
