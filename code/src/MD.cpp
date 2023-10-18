@@ -687,3 +687,46 @@ float power(float x) {
    else if (N % 3 == 0) return power<N / 3>(x * x * x);
    return power<N - 1>(x) * x;
 };
+
+/*
+    TESTING REGION
+
+    AFTER THIS IT'S ONLY THINGS THAT ARE CURRENTLY IN TESTING
+*/
+
+double squareRoot(double number) {
+    if (number < 0) {
+        // Square root of a negative number is undefined
+        return -1.0;  // You can choose to handle this case differently
+    }
+
+    // Initial guess for the square root (you can choose any positive number)
+    double guess = number;
+
+    // Number of iterations for approximation (adjust as needed)
+    int iterations = 100;
+
+    // Apply the Newton-Raphson method
+    while (iterations > 0) {
+        guess = 0.5 * (guess + number / guess);
+        iterations--;
+    }
+
+    return guess;
+}
+
+double cubicRoot(double number) {
+    // Initial guess for the cubic root (you can choose any positive number)
+    double guess = number / 3.0;
+
+    // Number of iterations for approximation (adjust as needed)
+    int iterations = 100;
+
+    // Apply the Newton-Raphson method
+    while (iterations > 0) {
+        guess = (2.0 * guess + number / (guess * guess)) / 3.0;
+        iterations--;
+    }
+
+    return guess;
+}
