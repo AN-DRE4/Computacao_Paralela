@@ -86,6 +86,10 @@ double Potential();
 double MeanSquaredVelocity();
 //  Compute total kinetic energy from particle mass and velocities
 double Kinetic();
+//  Compute the square root of a number using Newton's method
+double squareRoot(double number);
+//Calculates the cubic root of a number using Newton's method
+double cubicRoot(double number);
 
 int main()
 {
@@ -243,7 +247,8 @@ int main()
     }
     // Vol = L*L*L;
     // Length of the box in natural units:
-    L = pow(Vol,(1./3)); //*CHANGED THIS*
+    //L = pow(Vol,(1./3)); //*CHANGED THIS*
+    L = cubicRoot(Vol); // *CHANGED THIS*
     
     //  Files that we can write different quantities to
     tfp = fopen(tfn,"w");     //  The MD trajectory, coordinates of every particle at each timestep
@@ -373,8 +378,8 @@ void initialize() {
     double pos;
     
     // Number of atoms in each direction
-    n = int(ceil(pow(N, 1.0/3)));
-    //n = static_cast<int>(cbrt(N)+ 0.5); // *CHANGED THIS* 
+    //n = int(ceil(pow(N, 1.0/3)));
+    n = int(ceil(cubicRoot(N))); // *CHANGED THIS*
 
     //  spacing between atoms along a given direction
     pos = L / n;
@@ -477,7 +482,9 @@ double Potential() {
                 for (k=0; k<3; k++) {
                     r2 += (r[i][k]-r[j][k])*(r[i][k]-r[j][k]);
                 }
-                rnorm=sqrt(r2);
+                //rnorm=sqrt(r2);
+                //rnorm = squareRoot(r2); // *CHANGED THIS*
+                rnorm = r2 * 0.5 + 0.5 / r2;
                 quot=sigma/rnorm;
                 //term1 = pow(quot,12.);
                 //term2 = pow(quot,6.);
@@ -645,6 +652,8 @@ void initializeVelocities() {
     }
     
     lambda = sqrt( 3*(N-1)*Tinit/vSqdSum);
+    //lambda = squareRoot( 3*(N-1)*Tinit/vSqdSum); // *CHANGED THIS*
+    //lambda = (3*(N-1)*Tinit/vSqdSum) * 0.5 + 0.5 / (3*(N-1)*Tinit/vSqdSum);
     
     for (i=0; i<N; i++) {
         for (j=0; j<3; j++) {
@@ -669,6 +678,8 @@ double gaussdist() {
         } while (rsq >= 1.0 || rsq == 0.0);
         
         fac = sqrt(-2.0 * log(rsq) / rsq);
+        //fac = squareRoot(-2.0 * log(rsq) / rsq); // *CHANGED THIS*
+        //fac = (-2.0 * log(rsq) / rsq) * 0.5 + 0.5 / (-2.0 * log(rsq) / rsq);
         gset = v1 * fac;
         available = true;
         
@@ -681,12 +692,12 @@ double gaussdist() {
     }
 }
 
-template<unsigned N>
+/*template<unsigned N>
 float power(float x) {
    if (N % 2 == 0) return power<N / 2>(x * x);
    else if (N % 3 == 0) return power<N / 3>(x * x * x);
    return power<N - 1>(x) * x;
-};
+};*/
 
 /*
     TESTING REGION
@@ -697,7 +708,7 @@ float power(float x) {
 double squareRoot(double number) {
     if (number < 0) {
         // Square root of a negative number is undefined
-        return -1.0;  // You can choose to handle this case differently
+        return 1.0;  // You can choose to handle this case differently
     }
 
     // Initial guess for the square root (you can choose any positive number)
