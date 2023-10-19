@@ -73,15 +73,18 @@ void initialize();
 //  print particle coordinates to file for rendering via VMD or other animation software
 //  return 'instantaneous pressure'
 double VelocityVerlet(double dt, int iter, FILE *fp);  
+double VelocityVerlet2(double dt, int iter, FILE *fp);
 //  Compute Force using F = -dV/dr
 //  solve F = ma for use in Velocity Verlet
 void computeAccelerations();
+void computeAccelerations2();
 //  Numerical Recipes function for generation gaussian distribution
 double gaussdist();
 //  Initialize velocities according to user-supplied initial Temperature (Tinit)
 void initializeVelocities();
 //  Compute total potential energy from particle coordinates
 double Potential();
+double Potential2();
 //  Compute mean squared velocity from particle velocities
 double MeanSquaredVelocity();
 //  Compute total kinetic energy from particle mass and velocities
@@ -278,8 +281,8 @@ int main()
     //  Based on their positions, calculate the ininial intermolecular forces
     //  The accellerations of each particle will be defined from the forces and their
     //  mass, and this will allow us to update their positions via Newton's law
-    computeAccelerations();
-    
+    //computeAccelerations();
+    computeAccelerations2();
     
     // Print number of particles to the trajectory file
     fprintf(tfp,"%i\n",N);
@@ -312,7 +315,8 @@ int main()
         // This updates the positions and velocities using Newton's Laws
         // Also computes the Pressure as the sum of momentum changes from wall collisions / timestep
         // which is a Kinetic Theory of gasses concept of Pressure
-        Press = VelocityVerlet(dt, i+1, tfp);
+        //Press = VelocityVerlet(dt, i+1, tfp);
+        Press = VelocityVerlet2(dt, i+1, tfp);
         Press *= PressFac;
         
         //  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -322,7 +326,8 @@ int main()
         //  We would also like to use the IGL to try to see if we can extract the gas constant
         mvs = MeanSquaredVelocity();
         KE = Kinetic();
-        PE = Potential();
+        //PE = Potential();
+        PE = Potential2();
         
         // Temperature from Kinetic Theory
         Temp = m*mvs/(3*kB) * TempFac;
@@ -562,7 +567,8 @@ double VelocityVerlet(double dt, int iter, FILE *fp) {
         //printf("  %i  %6.4e   %6.4e   %6.4e\n",i,r[i][0],r[i][1],r[i][2]);
     }
     //  Update accellerations from updated positions
-    computeAccelerations();
+    //computeAccelerations();
+    computeAccelerations2();
     //  Update velocity with updated acceleration
     for (i=0; i<N; i++) {
         for (j=0; j<3; j++) {
@@ -740,4 +746,108 @@ double cubicRoot(double number) {
     }
 
     return guess;
+}
+
+double Potential2() {
+    double Pot = 0.0;
+    // Precomputed sig2 and eps4 to avoid redundant multiplications within the loops.
+    double sig2 = sigma * sigma;
+    double eps4 = 4 * epsilon;
+    
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            if (j != i) {
+                double r2 = 0.0;
+                // Eliminated the square root calculation by using the square of distances (i.e., r2 instead of rnorm).
+                for (int k = 0; k < 3; k++) {
+                    double delta = r[i][k] - r[j][k];
+                    r2 += delta * delta;
+                }
+                
+                // Used the fact that quot is sigma / rnorm, so we calculate r2inv (the inverse of the squared distance) and reuse it.
+                double r2inv = 1.0 / r2;
+                double quot = sig2 * r2inv;
+
+                //Replaced the multiple multiplications of quot with more efficient power operations for term1 and term2.
+                double term1 = quot * quot;
+                double term2 = term1 * term1 * term1;
+
+                Pot += eps4 * (term1 * term2 - term2);
+            }
+        }
+    }
+
+    return Pot;
+}
+
+// Returns the sum of dv/dt*m/A (Pressure) from elastic collisions with walls
+double VelocityVerlet2(double dt, int iter, FILE *fp) {
+    double psum = 0.0;
+    double half_dt = 0.5 * dt;
+
+    // Update positions and velocity with current velocity and acceleration
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < 3; j++) {
+            double old_v = v[i][j];
+            r[i][j] += (old_v + half_dt * a[i][j]) * dt;
+            v[i][j] += half_dt * a[i][j];
+        }
+    }
+
+    // Update accelerations from updated positions
+    //computeAccelerations();
+    computeAccelerations2();
+
+    // Update velocity with updated acceleration
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < 3; j++) {
+            v[i][j] += half_dt * a[i][j];
+        }
+    }
+
+    // Elastic walls
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < 3; j++) {
+            if (r[i][j] < 0.0 || r[i][j] >= L) {
+                v[i][j] *= -1.0;  // Elastic walls
+                psum += 2.0 * m * fabs(v[i][j]) / dt;  // Contribution to pressure from walls
+            }
+        }
+    }
+
+    return psum / (6.0 * L * L);
+}
+
+void computeAccelerations2() {
+    // Calculate forces and accelerations
+    for (int i = 0; i < N; i++) {
+        for (int k = 0; k < 3; k++) {
+            a[i][k] = 0.0; // Initialize accelerations to zero
+        }
+    }
+
+    for (int i = 0; i < N - 1; i++) {
+        for (int j = i + 1; j < N; j++) {
+            double rij[3]; // Position of i relative to j
+            double rSqd = 0.0;
+
+            // Calculate rij and rSqd
+            for (int k = 0; k < 3; k++) {
+                rij[k] = r[i][k] - r[j][k];
+                rSqd += rij[k] * rij[k];
+            }
+
+            // Calculate the force using Lennard-Jones potential derivative
+            double rSqdInv = 1.0 / rSqd;
+            double r6inv = rSqdInv * rSqdInv * rSqdInv;
+            double f = 24.0 * rSqdInv * r6inv * (2.0 * r6inv - 1.0);
+
+            // Update accelerations for both particles
+            for (int k = 0; k < 3; k++) {
+                double force_component = f * rij[k];
+                a[i][k] += force_component;
+                a[j][k] -= force_component;
+            }
+        }
+    }
 }
