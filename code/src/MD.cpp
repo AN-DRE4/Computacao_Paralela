@@ -759,10 +759,16 @@ double Potential2() {
             if (j != i) {
                 double r2 = 0.0;
                 // Eliminated the square root calculation by using the square of distances (i.e., r2 instead of rnorm).
-                for (int k = 0; k < 3; k++) {
+                /*for (int k = 0; k < 3; k++) {
                     double delta = r[i][k] - r[j][k];
                     r2 += delta * delta;
-                }
+                }*/
+                double delta = r[i][0] - r[j][0];
+                r2 += delta * delta;
+                delta = r[i][1] - r[j][1];
+                r2 += delta * delta;
+                delta = r[i][2] - r[j][2];
+                r2 += delta * delta;
                 
                 // Used the fact that quot is sigma / rnorm, so we calculate r2inv (the inverse of the squared distance) and reuse it.
                 double r2inv = 1.0 / r2;
@@ -821,9 +827,13 @@ double VelocityVerlet2(double dt, int iter, FILE *fp) {
 void computeAccelerations2() {
     // Calculate forces and accelerations
     for (int i = 0; i < N; i++) {
-        for (int k = 0; k < 3; k++) {
+        // Initialize accelerations to zero
+        /*for (int k = 0; k < 3; k++) {
             a[i][k] = 0.0; // Initialize accelerations to zero
-        }
+        }*/
+        a[i][0] = 0.0;
+        a[i][1] = 0.0; 
+        a[i][2] = 0.0; 
     }
 
     for (int i = 0; i < N - 1; i++) {
@@ -832,10 +842,16 @@ void computeAccelerations2() {
             double rSqd = 0.0;
 
             // Calculate rij and rSqd
-            for (int k = 0; k < 3; k++) {
+            /*for (int k = 0; k < 3; k++) {
                 rij[k] = r[i][k] - r[j][k];
                 rSqd += rij[k] * rij[k];
-            }
+            }*/
+            rij[0] = r[i][0] - r[j][0];
+            rSqd += rij[0] * rij[0];
+            rij[1] = r[i][1] - r[j][1];
+            rSqd += rij[1] * rij[1];
+            rij[2] = r[i][2] - r[j][2];
+            rSqd += rij[2] * rij[2];
 
             // Calculate the force using Lennard-Jones potential derivative
             double rSqdInv = 1.0 / rSqd;
@@ -843,11 +859,20 @@ void computeAccelerations2() {
             double f = 24.0 * rSqdInv * r6inv * (2.0 * r6inv - 1.0);
 
             // Update accelerations for both particles
-            for (int k = 0; k < 3; k++) {
+            /*for (int k = 0; k < 3; k++) {
                 double force_component = f * rij[k];
                 a[i][k] += force_component;
                 a[j][k] -= force_component;
-            }
+            }*/
+            double force_component = f * rij[0];
+            a[i][0] += force_component;
+            a[j][0] -= force_component;
+            force_component = f * rij[1];
+            a[i][1] += force_component;
+            a[j][1] -= force_component;
+            force_component = f * rij[2];
+            a[i][2] += force_component;
+            a[j][2] -= force_component;
         }
     }
 }
