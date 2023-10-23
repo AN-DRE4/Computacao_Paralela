@@ -1,6 +1,6 @@
 CC = gcc
 SRC = src/
-CFLAGS = -g -fno-omit-frame-pointer -Ofast -mavx -ffast-math -march=native -pg
+CFLAGS = -g -fno-omit-frame-pointer -Ofast -mavx -ffast-math -march=native
 
 .DEFAULT_GOAL = MD.exe
 
