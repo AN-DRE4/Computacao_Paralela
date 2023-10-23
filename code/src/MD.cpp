@@ -491,10 +491,10 @@ double Potential() {
                     r2 += (r[i][k]-r[j][k])*(r[i][k]-r[j][k]);
                 }
                 //rnorm=sqrt(r2);
-                //rnorm = square_root_Newton_Method(r2); // *CHANGED THIS*
-                //rnorm = r2 * 0.5 + 0.5 / r2;
+                //rnorm = square_root_Newton_Method(r2); 
+                //rnorm = r2 * 0.5 + 0.5 / r2; 
                 //quot=sigma/rnorm;
-                quot=sigma/r2;
+                quot=sigma/r2; // *CHANGED THIS*
                 //term1 = pow(quot,12.);
                 //term2 = pow(quot,6.);
                 term1 = quot * quot * quot * quot * quot * quot;
@@ -771,19 +771,30 @@ double square_root_Newton_Method(double n) {
 }
 
 double cubicRoot(double number) {
-    // Initial guess for the cubic root (you can choose any positive number)
-    double guess = number / 3.0;
-
-    // Number of iterations for approximation (adjust as needed)
-    int iterations = 100;
-
-    // Apply the Newton-Raphson method
-    while (iterations > 0) {
-        guess = (2.0 * guess + number / (guess * guess)) / 3.0;
-        iterations--;
+    // Assuming the sqrt of n as n only
+    double x = number;
+ 
+    // The closed guess will be stored in the root
+    double root;
+ 
+    // To count the number of iterations
+    int count = 0;
+ 
+    while (1) {
+        count++;
+ 
+        // Calculate more closed x
+        root = (2.0 * x + number / (x * x)) / 3.0;
+ 
+        // Check for closeness
+        if (absolute(root - x) < 0.00000000001)
+            break;
+ 
+        // Update root
+        x = root;
     }
-
-    return guess;
+ 
+    return root;
 }
 
 double Potential2() {
