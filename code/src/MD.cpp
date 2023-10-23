@@ -661,8 +661,8 @@ void initializeVelocities() {
         }
     }
     
-    //lambda = sqrt( 3*(N-1)*Tinit/vSqdSum);
-    lambda = square_root_Newton_Method( 3*(N-1)*Tinit/vSqdSum); // *CHANGED THIS*
+    lambda = sqrt( 3*(N-1)*Tinit/vSqdSum);
+    //lambda = square_root_Newton_Method( 3*(N-1)*Tinit/vSqdSum); // *CHANGED THIS*
     //lambda = (3*(N-1)*Tinit/vSqdSum) * 0.5 + 0.5 / (3*(N-1)*Tinit/vSqdSum);
     
     for (i=0; i<N; i++) {
@@ -687,8 +687,8 @@ double gaussdist() {
             rsq = v1 * v1 + v2 * v2;
         } while (rsq >= 1.0 || rsq == 0.0);
         
-        //fac = sqrt(-2.0 * log(rsq) / rsq);
-        fac = square_root_Newton_Method(-2.0 * log(rsq) / rsq); // *CHANGED THIS*
+        fac = sqrt(-2.0 * log(rsq) / rsq);
+        //fac = square_root_Newton_Method(-2.0 * log(rsq) / rsq); // *CHANGED THIS*
         //fac = (-2.0 * log(rsq) / rsq) * 0.5 + 0.5 / (-2.0 * log(rsq) / rsq);
         gset = v1 * fac;
         available = true;
