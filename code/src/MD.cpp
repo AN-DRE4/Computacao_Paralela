@@ -91,6 +91,9 @@ double MeanSquaredVelocity();
 double Kinetic();
 //  Compute the square root of a number using Newton's method
 double squareRoot(double number);
+double square_root_Newton_Method(double n);
+//  Compute the absolute value of a number
+float absolute(float num);
 //Calculates the cubic root of a number using Newton's method
 double cubicRoot(double number);
 
@@ -488,13 +491,14 @@ double Potential() {
                     r2 += (r[i][k]-r[j][k])*(r[i][k]-r[j][k]);
                 }
                 //rnorm=sqrt(r2);
-                //rnorm = squareRoot(r2); // *CHANGED THIS*
-                rnorm = r2 * 0.5 + 0.5 / r2;
-                quot=sigma/rnorm;
+                //rnorm = square_root_Newton_Method(r2); // *CHANGED THIS*
+                //rnorm = r2 * 0.5 + 0.5 / r2;
+                //quot=sigma/rnorm;
+                quot=sigma/r2;
                 //term1 = pow(quot,12.);
                 //term2 = pow(quot,6.);
-                term1 = quot * quot * quot * quot * quot * quot * quot * quot * quot * quot * quot * quot;
-                term2 = quot * quot * quot * quot * quot * quot;
+                term1 = quot * quot * quot * quot * quot * quot;
+                term2 = quot * quot * quot;
                 // *CHANGED THIS* ABOVE
                 
                 Pot += 4*epsilon*(term1 - term2);
@@ -657,8 +661,8 @@ void initializeVelocities() {
         }
     }
     
-    lambda = sqrt( 3*(N-1)*Tinit/vSqdSum);
-    //lambda = squareRoot( 3*(N-1)*Tinit/vSqdSum); // *CHANGED THIS*
+    //lambda = sqrt( 3*(N-1)*Tinit/vSqdSum);
+    lambda = square_root_Newton_Method( 3*(N-1)*Tinit/vSqdSum); // *CHANGED THIS*
     //lambda = (3*(N-1)*Tinit/vSqdSum) * 0.5 + 0.5 / (3*(N-1)*Tinit/vSqdSum);
     
     for (i=0; i<N; i++) {
@@ -683,8 +687,8 @@ double gaussdist() {
             rsq = v1 * v1 + v2 * v2;
         } while (rsq >= 1.0 || rsq == 0.0);
         
-        fac = sqrt(-2.0 * log(rsq) / rsq);
-        //fac = squareRoot(-2.0 * log(rsq) / rsq); // *CHANGED THIS*
+        //fac = sqrt(-2.0 * log(rsq) / rsq);
+        fac = square_root_Newton_Method(-2.0 * log(rsq) / rsq); // *CHANGED THIS*
         //fac = (-2.0 * log(rsq) / rsq) * 0.5 + 0.5 / (-2.0 * log(rsq) / rsq);
         gset = v1 * fac;
         available = true;
@@ -730,6 +734,40 @@ double squareRoot(double number) {
     }
 
     return guess;
+}
+
+float absolute(float num) {
+    if(num < 0){
+        num = -num;
+    }
+    return num;
+}
+
+double square_root_Newton_Method(double n) {
+    // Assuming the sqrt of n as n only
+    double x = n;
+ 
+    // The closed guess will be stored in the root
+    double root;
+ 
+    // To count the number of iterations
+    int count = 0;
+ 
+    while (1) {
+        count++;
+ 
+        // Calculate more closed x
+        root = 0.5 * (x + (n / x));
+ 
+        // Check for closeness
+        if (absolute(root - x) < 0.000000000001)
+            break;
+ 
+        // Update root
+        x = root;
+    }
+ 
+    return root;
 }
 
 double cubicRoot(double number) {
